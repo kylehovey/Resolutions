@@ -1,5 +1,4 @@
 import Resolution from "../resolution/resolution.js";
-window.Resolution = Resolution;
 
 /**
  * Resolution list component

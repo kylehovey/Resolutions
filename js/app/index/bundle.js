@@ -85,7 +85,6 @@ $(() => {
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__components_resolutionList_resolutionList_js__ = __webpack_require__(2);
 
-window.ResolutionList = __WEBPACK_IMPORTED_MODULE_0__components_resolutionList_resolutionList_js__["a" /* default */];
 
 /**
  * Main application code for one view
@@ -95,21 +94,11 @@ class App {
    * Construct the view from components
    */
   constructor() {
-    this.resolutions = new __WEBPACK_IMPORTED_MODULE_0__components_resolutionList_resolutionList_js__["a" /* default */]({
-      container : "body",
-      resolutions : [
-        {
-          "goal" : "Go Skiing 25 Days",
-          "progressBar" : true,
-          "progressGoal" : 25,
-          "unit" : "days",
-          "progress" : 10,
-          "done" : false
-        },{
-          "goal" : "Hammock Camp in a Snow Storm",
-          "done" : true
-        }
-      ]
+    Promise.resolve($.getJSON("./resolutions.json")).then(resolutions => {
+      this.resolutions = new __WEBPACK_IMPORTED_MODULE_0__components_resolutionList_resolutionList_js__["a" /* default */]({
+        container : "body",
+        resolutions
+      });
     });
   }
 }
@@ -124,7 +113,6 @@ class App {
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__resolution_resolution_js__ = __webpack_require__(3);
 
-window.Resolution = __WEBPACK_IMPORTED_MODULE_0__resolution_resolution_js__["a" /* default */];
 
 /**
  * Resolution list component
