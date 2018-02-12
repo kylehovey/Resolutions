@@ -8,6 +8,7 @@ export default class Resolution {
    * @param {String} goal Title of resolution
    * @param {Boolean} progressBar True if progressbar should be rendered
    * @param {Number} progressGoal Quantity for resolution
+   * @param {Number} progress Progress so far
    * @param {String} unit Type of thing being measured
    */
   constructor(opts) {
@@ -16,7 +17,9 @@ export default class Resolution {
       goal : "Do a thing.",
       progressBar : false,
       progressGoal : 100,
-      unit : "%"
+      progress : 0,
+      unit : "%",
+      done : false
     }, opts);
 
     this._element = $(`
@@ -33,6 +36,14 @@ export default class Resolution {
     `);
 
     $(`#${this._opts.container}`).append(this._element);
+
+    if (this._opts.progressBar) {
+      this.setProgress(this._opts.progress);
+    }
+
+    if (this._opts.done) {
+      this.complete();
+    }
   }
 
   /**
@@ -40,6 +51,19 @@ export default class Resolution {
    */
   complete() {
     this._element.addClass("done");
+    this._opts.done = true;
+  }
+
+  /**
+   * Get the progress of this resolution (0-1)
+   * @return {Number}
+   */
+  getProgress() {
+    if (this._opts.progressBar) {
+      return this._opts.progress / this._opts.progressGoal;
+    } else {
+      return this._opts.done ? 1 : 0;
+    }
   }
 
   /**
@@ -49,11 +73,12 @@ export default class Resolution {
    */
   setProgress(value = 0) {
     if (this._opts.progressBar) {
-      const progress = Math.round(100 * value / this._opts.progressGoal);
+      this._opts.progress = value;
+      const percent = Math.round(100 * value / this._opts.progressGoal);
 
       this._element
         .find(".progress-bar")
-        .css("width", `${progress}%`)
+        .css("width", `${percent}%`)
         .text(`${value} ${this._opts.unit}`);
     } else {
       throw new Error("No progress bar in this resolution.");

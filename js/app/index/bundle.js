@@ -83,9 +83,9 @@ $(() => {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__components_resolution_resolution_js__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__components_resolutionList_resolutionList_js__ = __webpack_require__(2);
 
-window.Resolution = __WEBPACK_IMPORTED_MODULE_0__components_resolution_resolution_js__["a" /* default */];
+window.ResolutionList = __WEBPACK_IMPORTED_MODULE_0__components_resolutionList_resolutionList_js__["a" /* default */];
 
 /**
  * Main application code for one view
@@ -95,6 +95,22 @@ class App {
    * Construct the view from components
    */
   constructor() {
+    this.resolutions = new __WEBPACK_IMPORTED_MODULE_0__components_resolutionList_resolutionList_js__["a" /* default */]({
+      container : "body",
+      resolutions : [
+        {
+          "goal" : "Go Skiing 25 Days",
+          "progressBar" : true,
+          "progressGoal" : 25,
+          "unit" : "days",
+          "progress" : 10,
+          "done" : false
+        },{
+          "goal" : "Hammock Camp in a Snow Storm",
+          "done" : true
+        }
+      ]
+    });
   }
 }
 /* harmony export (immutable) */ __webpack_exports__["a"] = App;
@@ -103,6 +119,111 @@ class App {
 
 /***/ }),
 /* 2 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__resolution_resolution_js__ = __webpack_require__(3);
+
+window.Resolution = __WEBPACK_IMPORTED_MODULE_0__resolution_resolution_js__["a" /* default */];
+
+/**
+ * Resolution list component
+ */
+class ResolutionList {
+  /**
+   * Construct a resolution list on the page
+   * @param {String} container ID of container to place list in
+   * @param {Array} resolutions JSON of resolutions loaded from file. Example:
+   * [
+   *  {
+   *    "goal" : "Go Skiing 25 Days",
+   *    "progressBar" : true,
+   *    "progressGoal" : 25,
+   *    "unit" : "days",
+   *    "progress" : 10,
+   *    "done" : false
+   *  },{
+   *    "goal" : "Hammock Camp in a Snow Storm",
+   *    "done" : true
+   *  }
+   * ]
+   */
+  constructor(opts) {
+    this._opts = Object.assign({
+      resolutions : [ ]
+    }, opts);
+
+    this._element = $(`
+      <section id="resolution-progress">
+        <div class="container">
+          <div class="row">
+            <div class="col-xs-10 col-xs-offset-1 card-container" id="about-col">
+              <center>
+                <span class="title-text">
+                  Progress
+                </span>
+                <div class="progress progress-striped">
+                  <div id="main-bar" class="progress-bar" style="width:12%">
+                    12%
+                  </div>
+                </div>
+              </center>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section id="resolutions">
+        <div class="container">
+          <div class="row">
+            <div class="col-xs-10 col-xs-offset-1 card-container" id="resolutions-col">
+              <ul id="resolutions-list"></ul>
+            </div>
+          </div>
+        </div>
+      </section>
+    `);
+
+    $(this._opts.container).append(this._element);
+
+    this._resolutions = [ ];
+
+    this._opts.resolutions
+      .map(this.addResolution.bind(this));
+  }
+
+  /**
+   * Add a resolution to the list
+   * @param {Object} resoution Resolution JSON
+   */
+  addResolution(resolution) {
+    this._resolutions.push(new __WEBPACK_IMPORTED_MODULE_0__resolution_resolution_js__["a" /* default */](Object.assign({
+      container : "resolutions-list"
+    }, resolution)));
+
+    this.computeProgress();
+  }
+
+  /**
+   * Compute and render progress
+   */
+  computeProgress() {
+    const progress = this._resolutions.reduce((total, res) => {
+      return total + res.getProgress();
+    }, 0) / this._resolutions.length;
+
+    const percent = Math.round(progress * 100);
+
+    $("#main-bar")
+      .css("width", `${percent}%`)
+      .text(`${percent}%`);
+  }
+}
+/* harmony export (immutable) */ __webpack_exports__["a"] = ResolutionList;
+
+
+
+/***/ }),
+/* 3 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -116,6 +237,7 @@ class Resolution {
    * @param {String} goal Title of resolution
    * @param {Boolean} progressBar True if progressbar should be rendered
    * @param {Number} progressGoal Quantity for resolution
+   * @param {Number} progress Progress so far
    * @param {String} unit Type of thing being measured
    */
   constructor(opts) {
@@ -124,7 +246,9 @@ class Resolution {
       goal : "Do a thing.",
       progressBar : false,
       progressGoal : 100,
-      unit : "%"
+      progress : 0,
+      unit : "%",
+      done : false
     }, opts);
 
     this._element = $(`
@@ -141,6 +265,14 @@ class Resolution {
     `);
 
     $(`#${this._opts.container}`).append(this._element);
+
+    if (this._opts.progressBar) {
+      this.setProgress(this._opts.progress);
+    }
+
+    if (this._opts.done) {
+      this.complete();
+    }
   }
 
   /**
@@ -148,6 +280,19 @@ class Resolution {
    */
   complete() {
     this._element.addClass("done");
+    this._opts.done = true;
+  }
+
+  /**
+   * Get the progress of this resolution (0-1)
+   * @return {Number}
+   */
+  getProgress() {
+    if (this._opts.progressBar) {
+      return this._opts.progress / this._opts.progressGoal;
+    } else {
+      return this._opts.done ? 1 : 0;
+    }
   }
 
   /**
@@ -157,11 +302,12 @@ class Resolution {
    */
   setProgress(value = 0) {
     if (this._opts.progressBar) {
-      const progress = Math.round(100 * value / this._opts.progressGoal);
+      this._opts.progress = value;
+      const percent = Math.round(100 * value / this._opts.progressGoal);
 
       this._element
         .find(".progress-bar")
-        .css("width", `${progress}%`)
+        .css("width", `${percent}%`)
         .text(`${value} ${this._opts.unit}`);
     } else {
       throw new Error("No progress bar in this resolution.");
